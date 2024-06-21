@@ -7,8 +7,6 @@ overline_u = 12;
 % Then click on 'Monitor & Tune'
 
 %% Step response analisys
-% Convert from rpm to rad/s
-speed.Data = speed_rpm.Data*2*pi/60;
 % Remove idle time
 y = speed.Data(speed.Time >= 2.0 & speed.Time <= 5.0);
 x = speed.Time(speed.Time >= 2.0 & speed.Time <= 5.0) - 2;
