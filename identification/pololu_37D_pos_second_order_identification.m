@@ -7,6 +7,8 @@ overline_u = 12;
 % Then click on 'Monitor & Tune'
 
 %% Step response analisys
+% Convert from rpm to rad/s
+speed.Data = speed_rpm.Data*2*pi/60;
 % Remove idle time
 y = speed.Data(speed.Time >= 2.0 & speed.Time <= 5.0);
 x = speed.Time(speed.Time >= 2.0 & speed.Time <= 5.0) - 2;
@@ -59,7 +61,7 @@ S2 = sum((y_cut)*Ts);
 
 % Get T, tau, mu
 T = S2*exp(1)/overline_y;
-tau = t_plus_tau - T;
+tau = max(0,t_plus_tau - T);
 
 % Plot the resulting model
 s = tf('s');
