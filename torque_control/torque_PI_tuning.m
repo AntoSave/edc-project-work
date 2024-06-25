@@ -1,13 +1,14 @@
 clear; clc;
 s = tf('s');
-
+%% Motor Model
 % Motor parameters
 L = 2.3e-3;
-R = 2.1;
+R = 3.4;
 Kt = 1.32;
 
 G = 1/(s*L+R);
 
+%% Controller tuning
 rltool
 
 % Sampling time
@@ -19,7 +20,8 @@ Ts_max = 1/fs_min;
 
 Ts = 0.001;
 
-% De-noising
+
+%% De-noising
 Tf = Ts/2;
 bode(1/(1+s*Tf))
 omega_3f = 1/Tf;
