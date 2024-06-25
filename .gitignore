@@ -6,3 +6,5 @@
 slprj/**
 *_ert_rtw/**
 *.asv
+.vscode
+CMakePresets.json
