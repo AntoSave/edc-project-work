@@ -197,12 +197,13 @@ double getTicksDelta(double currentTicks, double lastTicks, double Ts) {
 double getPosition(double ticksDelta, double *ticksStar) {
 	(*ticksStar) = (*ticksStar) + ticksDelta;
 	double completeTheta = 2*M_PI*(*ticksStar)/(8400);
-	int sign = 0;
-	if(completeTheta>0)
-		sign = 1;
-	else if(completeTheta<0)
-		sign = -1;
-	double position = sign*fmod(fabs(completeTheta),2*M_PI);
+	// int sign = 0;
+	// if(completeTheta>0)
+	// 	sign = 1;
+	// else if(completeTheta<0)
+	// 	sign = -1;
+	// double position = sign*fmod(fabs(completeTheta),2*M_PI);
+	double position = completeTheta;
 	return position;
 }
 
