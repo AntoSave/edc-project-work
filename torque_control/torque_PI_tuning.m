@@ -12,12 +12,12 @@ G = 1/(s*L+R);
 rltool
 
 % Sampling time
-bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 400 rad/s
-W_omega3 = 400;
+bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 200 rad/s
+W_omega3 = 200;
 omega_s_min = 5*W_omega3;
 Ts_max = 2*pi/omega_s_min;
 
-Ts = 0.001;
+Ts = 0.005;
 
 
 %% De-noising
