@@ -12,11 +12,10 @@ G = 1/(s*L+R);
 rltool
 
 % Sampling time
-bode(R*G) %Bandwidth of the system is 910 rad/s
-G_omega3 = 910;
-G_f3 = G_omega3/(2*pi);
-fs_min = G_f3*6; % We f_s >> f_3dB
-Ts_max = 1/fs_min;
+bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 400 rad/s
+W_omega3 = 400;
+omega_s_min = 5*W_omega3;
+Ts_max = 2*pi/omega_s_min;
 
 Ts = 0.001;
 
