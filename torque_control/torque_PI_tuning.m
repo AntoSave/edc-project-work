@@ -1,15 +1,18 @@
 clear; clc;
 s = tf('s');
+load("pololu_37D_pos_second_order", "G_pos");
+sys = G_pos;
 %% Motor Model
 % Motor parameters
 L = 2.3e-3;
 R = 3.4;
-Kt = 1.32;
+K = 1.32;
 
 G = 1/(s*L+R);
 
 %% Controller tuning
-rltool
+% rltool
+C = 0.45966*(s+1478)/s;
 
 % Sampling time
 bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 200 rad/s
