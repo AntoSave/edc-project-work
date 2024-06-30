@@ -26,7 +26,13 @@ Ts = 0.005;
 %% Integral Algorithm
 z = tf('z');
 Cz=c2d(C,Ts,'tustin')
-Kp=0.45966
-Ki=679.4
+Kp=0.4597
+Ki=679.3775
 Ti=1/(Ki/Kp)
 pippo=Kp+Ki*Ts*0.5*(z+1)/(z-1)
+
+%% Integral Algorithm
+pid = pidstd(C);
+Kp = pid.Kp;
+Ti = pid.Ti;
+ki = Kp*Ts/Ti;
