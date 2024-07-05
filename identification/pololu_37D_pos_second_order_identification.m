@@ -2,76 +2,95 @@ clear; clc;
 %% Run the code on the motor
 mdl = "pololu_37D_pos_second_order_identification_sim";
 open(mdl)
-Ts = 0.005;
-overline_u = 12;
-% Then click on 'Monitor & Tune'
+% Now click on 'Monitor & Tune' and wait for the simulation to finish
+
+%% Prepare data
+time = speed_mean.Time;
+speed = speed_mean.Data;
+
+Ts = 0.004; % This is not the same as control sampling time!
+overline_u = 6; % We give a reference of 6V
+step_time = 2.0;
+transient_end_time = 0.55;
+response_end_time = 1.0;
+epsilon = Ts/20;
 
 %% Step response analisys
 % Remove idle time
-y = speed.Data(speed.Time >= 2.0 & speed.Time <= 5.0);
-x = speed.Time(speed.Time >= 2.0 & speed.Time <= 5.0) - 2;
+
+y = speed(time >= step_time & time <= step_time + response_end_time + epsilon);
+x = time(time >= step_time & time <= step_time + response_end_time + epsilon) - step_time;
+
+filter = generate_fir_filt();
+y_filt_full = filtfilt(filter.Numerator, 1, speed(time >= step_time));
+y_filt_full = interp(y_filt_full,4);
+x_filt_full = [0:0.001:size(y_filt_full,1)*0.001-0.001].';
+y_filt = y_filt_full(x_filt_full<=x(end));
+x_filt = x_filt_full(x_filt_full<=x(end));
+%filter = generate_iir_filt();
+%y_filt = filtfilt(filter.sosMatrix, filter.ScaleValues, y);
+
+figure
+hold on
 stairs(x,y)
-
-% Interpolate signal
-% x_interp = interp(x,10);
-% y_interp = interp(y,10);
-% hold on
-% stairs(x_interp, y_interp)
-
-% Sgolay
-% y_filt = sgolayfilt(y_interp,2,51);
-% hold on
-% stairs(x_interp,y_filt)
-
-% Ital filter
-% [y_filt,d] = lowpass(y_interp,1.0,(1/0.005)*10)
-% hold on
-% stairs(x_interp,y_filt)
-% y_filt2 = filtfilt(d,y_interp);
-% stairs(x_interp,y_filt2)
+plot(x_filt,y_filt)
+xlim([0 response_end_time])
 
 % Get overline_y
-overline_y = mean(speed.Data(speed.Time >= 2.5 & speed.Time <= 5.0));
+overline_y = mean(y_filt(x_filt >= transient_end_time & x_filt <= response_end_time));
 mu = overline_y/overline_u;
+plot([0; response_end_time],[overline_y; overline_y])
 
-% Fourier analisys
-% y_ft = fft(x_interp);
-% Ts = 0.05;
-% fs = 1/Ts * 10;
-% n = length(y_ft);          % number of samples
-% f = (0:n-1)*(fs/n);     % frequency range
-% power = abs(y_ft).^2/n;    % power of the DFT
-% plot(f,power)
-% xlabel('Frequency')
-% ylabel('Power')
 
-%% Euler approximation
+%% Area method with Euler approximation
+% % Get S1 (the area above the curve)
+% S1 = sum((overline_y-y)*Ts);
+% 
+% % Get T+tau
+% t_plus_tau = S1/overline_y;
+% y_cut = y(x <= t_plus_tau + epsilon);
+% plot([t_plus_tau; t_plus_tau], [0; overline_y])
+% plot(x(x<=t_plus_tau + epsilon), y_cut)
+% % Get S2 (the area under the curve)
+% S2 = sum((y_cut)*Ts);
+% 
+% % Get T, tau, mu
+% T = S2*exp(1)/overline_y;
+% tau = max(0,t_plus_tau - T);
+
+%% Area method with trapezoid approximation
 % Get S1 (the area above the curve)
-S1 = cumsum((overline_y-y)*Ts);
-S1 = mean(S1(end-400:end));
+S1 = trapz(x_filt,overline_y-y_filt);
 
 % Get T+tau
 t_plus_tau = S1/overline_y;
-y_cut = speed.Data(speed.Time >= 2.0 & speed.Time <= 2.0 + t_plus_tau);
+y_cut = y_filt(x_filt <= t_plus_tau + epsilon);
+x_cut = x_filt(x_filt <= t_plus_tau + epsilon);
+plot([t_plus_tau; t_plus_tau], [0; overline_y])
+plot(x_cut, y_cut)
 
 % Get S2 (the area under the curve)
-S2 = sum((y_cut)*Ts);
+S2 = trapz(x_cut,y_cut);
 
 % Get T, tau, mu
 T = S2*exp(1)/overline_y;
-tau = max(0,t_plus_tau - T);
+tau = t_plus_tau - T;
 
-% Plot the resulting model
+%% Plot the resulting model
 s = tf('s');
 G_no_delay = mu/(1+T*s);
 G = G_no_delay * exp(-tau*s);
 
-stairs(x,y/overline_u);
+figure
 hold on
+plot(x_filt_full,y_filt_full/overline_u);
 step(G);
 step(G_no_delay);
+xlim([0,1])
+legend('Measured speed', 'Model with delay', 'Model without delay')
 
-% Extract position model
+
+%% Extract position model from speed model
 G_pos = G_no_delay/s;
 G_pos = ss(G_pos);
 T = obsv(G_pos.A, G_pos.C);
@@ -82,31 +101,3 @@ D = 0;
 G_pos = ss(A,B,C,D);
 G_pos = xperm(G_pos, [2 1]);
 save("pololu_37D_pos_second_order", "G_pos");
-
-
-%% Trapezoid approximation
-% Get S1 (the area above the curve)
-S1 = cumtrapz(x,overline_y-y);
-S1 = mean(S1(end-400:end));
-
-% Get T+tau
-t_plus_tau = S1/overline_y;
-y_cut = speed.Data(speed.Time >= 2.0 & speed.Time <= 2.0 + t_plus_tau);
-
-% Get S2 (the area under the curve)
-S2 = trapz((y_cut)*Ts);
-
-% Get T, tau, mu
-T = S2*exp(1)/overline_y;
-tau = t_plus_tau - T;
-
-% Plot the resulting model
-s = tf('s');
-G_no_delay = mu/(1+T*s);
-G = G_no_delay * exp(-tau*s);
-
-stairs(x,y/overline_u);
-hold on
-step(G);
-step(G_no_delay);
-
