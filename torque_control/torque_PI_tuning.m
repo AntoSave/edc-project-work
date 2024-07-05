@@ -5,14 +5,14 @@ sys = G_pos;
 %% Motor Model
 % Motor parameters
 L = 2.3e-3;
-R = 3.4;
-K = 1.32;
+R = 1.7;
+K = 1.339;
 
 G = 1/(s*L+R);
 
 %% Controller tuning
 % rltool
-C = 0.45966*(s+1478)/s;
+C= 0.04609*(s+738.7)/s;
 
 % Sampling time
 bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 200 rad/s
