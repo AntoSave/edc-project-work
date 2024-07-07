@@ -12,15 +12,17 @@ B_ext = [sys.B; 0];
 % Qu = 0.01;
 % Qx = [0.1 0 0; 0 100 0; 0 0 0.01];
 % Controllore nuovo NON CANCELLARE
-% Qu = 13;
-% Qx = [1 0 0; 0 600 0; 0 0 35];
+Qu = 25;
+Qx = [1 0 0; 0 300 0; 0 0 40];
 % Controllore
 % Qu = 0.1;
 % Qx = [0.01 0 0; 0 7 0; 0 0 180];
 
 % Controllore DEFINITIVO (forse?)
-Qu = 0.1;
-Qx = [0.01 0 0; 0 10 0; 0 0 340];
+% Qu = 0.1;
+% Qx = [0.01 0 0; 0 10 0; 0 0 340];
+% Qu = 0.1;
+% Qx = [0.01 0 0; 0 12 0; 0 0 200];
 % [K,S,e] = lqrd(A_ext, B_ext, Qx, Qu, 0, Ts) 
 [K,S,e] = lqr(A_ext, B_ext, Qx, Qu, 0)
 
@@ -40,9 +42,9 @@ W_ff=(C*P-K(2)*P)/(1+C*P);
 bode(W)
 hold on
 bode(W_ff)
-legend("W","W_ff")
-% figure()
-% bode(G_speed*K(1))
+legend("W","W_{ff}")
+figure()
+bode(C*P)
 
 % Speed loop step
 speed_loop_info=stepinfo(speed_loop)
