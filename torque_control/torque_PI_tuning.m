@@ -2,6 +2,7 @@ clear; clc;
 s = tf('s');
 load("pololu_37D_pos_second_order", "G_pos");
 sys = G_pos;
+
 %% Motor Model
 % Motor parameters
 L = 2.3e-3;
@@ -9,55 +10,39 @@ R = 1.7;
 K = 1.339;
 
 G = 1/(s*L+R);
+G = zpk(G);
+bandwidth(G) % Open loop bandwidth is 737 rad/s
+G0 = evalfr(G,0); % Static gain
+G_T = -1/G.P{1}; % Time constant
 
 %% Controller tuning
-% rltool
-C= 0.04609*(s+738.7)/s;
+omega_3_d = 20; % We want a closed loop bandwidth of 20rad/s
+Ki = omega_3_d/G0;
+Kp = G_T*Ki;
+Ti = Kp/Ki;
 
-% Sampling time
-bode(feedback(C*G,1)) % Closed loop bandwidth of the system is 200 rad/s
-W_omega3 = 200;
-omega_s_min = 5*W_omega3;
-Ts_max = 2*pi/omega_s_min;
+C = Kp + Ki/s;
 
+%% Stability margins
+W = feedback(C*G,1);
+W_omega_3 = bandwidth(W) % Closed loop bandwidth of the system is approx 20 rad/s
+[Gm, Pm] = margin(G*C) % Phase margin is 90rad/s
+max_delay = (Pm*pi/180)/W_omega_3 % Max delay is 0.078s
+
+%% Closed loop performances
+stepinfo(W) % Rise time is 0.1s, settling time is 0.19s, no overshoot
+
+figure
+bode(W)
+figure
+step(W)
+
+%% Choosing the settling time
 Ts = 0.005;
+f_s = 1/Ts;
+omega_s = 2*pi*f_s;
+omega_s > 2*W_omega_3 % Nyquist condition
+omega_s > 8*W_omega_3 % Tusin discretization
+W_omega_3*Ts/2 < Pm*pi/180 % Time delay introduced by discretization doesn't drain the phase margin
 
 
-%% De-noising
-Tf = Ts/2;
-bode(1/(1+s*Tf))
-omega_3f = 1/Tf;
-f_cut = omega_3f/(2*pi);
-Cf = 1/(f_cut*11000) - 1e-9
-
-% RC Filter
-R_f = 1.7e3;
-C_base = 1e-9;
-G_f = 1/(1+s*R_f*(C_base+300e-9))
-bode(G_f)
-
-R_f = 1.7e3;
-C_base = 1e-9;
-G_f = 1/(1+s*R_f*(C_base+10e-6))
-bode(G_f)
-
-hold on
-step(G)
-step(G*G_f)
-
-%% Fourier analisys
-y = current.Data
-x = current.Time
-[y2,x2] = resample(y,x);
-plot(x, y)
-hold on
-plot(x2,y2)
-
-x3 = x2(x2 > 3);
-y3 = y2(x2 > 3);
-plot(x3,y3)
-
-fourier = fft(x3); 
-m = abs(fourier);
-f = (0:length(fourier)-1)*300/length(fourier); 
-plot(f,m)
