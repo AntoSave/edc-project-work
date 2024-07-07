@@ -140,8 +140,8 @@ circular_buffer myBuff;
 /* BEGIN RECORD TYPEDEF*/
 typedef struct record {
 	double current_u; // value of the current controller output
-	double current_speed; // value of the current motor speed
-	double current_i; // value of the current motor current
+	double current_reference; // value of the current reference
+	double current_torque; // value of the current motor torque
 	uint32_t cycleCoreDuration; // time needed to read, compute and actuate
 	uint32_t cycleBeginDelay; // difference between the actual and the expected absolute start time of the cycle
 	uint32_t currentTimestamp; // current timestamp in millis
@@ -222,14 +222,14 @@ double u_last = 0;
 double speed_last = 0;
 double e_last = 0;
 double ticks_last = 0;
-double Kp = 0.04556;
-double Ti = 6.700000000000002e-04;
+double Kp = 0.046;
+double Ti = 0.001352941176471;
 double Ts = 0.005;
-double K = 1.32;
-double V0 = 2.47;
+double K = 1.339;
+double V0 = 2.467;
 double delta_V = 0.185;
 double alpha = 0.95123;
-double referenceVals[4] = { 0,0.16,0,-0.16 };//M_PI/2, M_PI, 3*M_PI/2, 2*M_PI };
+double referenceVals[4] = { 0,0.214,0,-0.214 };//M_PI/2, M_PI, 3*M_PI/2, 2*M_PI };
 double referenceVal;
 double current = 0.0;
 uint32_t k_controller = -1;
@@ -288,6 +288,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	int referenceIndex = 0;
 
+	// Convert torque reference to current reference
+	for(int i = 0; i<4; i++){
+		referenceVals[i] /= K;
+	}
+
 	referenceVal = referenceVals[referenceIndex];
 	printf("INIT\n\r"); // initialize the Matlab tool for COM data acquiring
 
@@ -298,7 +303,7 @@ int main(void)
 		for (size_t count = 0; count < nEntriesToSend; count++) {
 			cb_pop_front(&myBuff, &retrieved); //take entry from the buffer
 			printf("%lu, %f, %f, %f, %lu\n\r", retrieved.currentTimestamp,
-					retrieved.current_u, retrieved.current_speed, retrieved.current_i,
+					retrieved.current_u, retrieved.current_torque, retrieved.current_reference,
 					retrieved.cycleCoreDuration); // send values via USART using format: value1, value2, value3, ... valuen \n \r
 		}
 		referenceVal = referenceVals[referenceIndex];
@@ -701,7 +706,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		double deltaTicks = getTicksDelta(currentTicks, lastTicks, Ts);
 		double speed = getSpeedByDelta(deltaTicks, Ts);
 		double e = referenceVal-current;
-		double delta_u = Kp*(e*(1+Ts/(2*Ti))+e_last*(1+Ts/(2*Ti))) + (speed-speed_last)*K;
+		double delta_u = Kp*(e*(1+Ts/(2*Ti))+e_last*(Ts/(2*Ti)-1)) + (speed-speed_last)*K;
 		double u = u_last + delta_u;
 		if(u > 12.0)
 			u = 12.0;
@@ -717,8 +722,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		// recording data in the buffer
 		record r;
 		r.current_u = u;
-		r.current_speed = speed;
-		r.current_i = current;
+		r.current_reference = referenceVal*K;
+		r.current_torque = current*K;
 		r.cycleCoreDuration = controlComputationDuration;
 		r.cycleBeginDelay = tocControlStep - ticControlStep
 				- (k_controller * Ts * 1000);
