@@ -4,4 +4,9 @@
 *.hex
 *.slxc
 *_rtw
-slprj
+*.autosave
+slprj/**
+*_ert_rtw/**
+*.asv
+.vscode
+CMakePresets.json
