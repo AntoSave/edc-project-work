@@ -1,0 +1,7 @@
+*.asv
+*.bin
+*.elf
+*.hex
+*.slxc
+*_rtw
+slprj
