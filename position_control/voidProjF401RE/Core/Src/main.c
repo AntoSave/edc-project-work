@@ -135,8 +135,8 @@ circular_buffer myBuff;
 /* BEGIN RECORD TYPEDEF*/
 typedef struct record {
 	double current_u; // value of the current controller output
-	double current_x1; // value of the current motor speed
-	double current_x2; // value of the current motor position
+	double current_ref; // value of the current reference
+	double current_pos; // value of the current motor position
 	uint32_t cycleCoreDuration; // time needed to read, compute and actuate
 	uint32_t cycleBeginDelay; // difference between the actual and the expected absolute start time of the cycle
 	uint32_t currentTimestamp; // current timestamp in millis
@@ -217,7 +217,7 @@ double u_last = 0;
 double x1_last = 0;
 double x2_last = 0;
 double ticks_last = 0;
-double K[3] = { 7.1761, 290.5613, 26.9140 };
+double K[3] = { 6.3096, 302.9280, 26.1428 };
 double Ts = 0.005;
 double referenceVals[4] = { M_PI,0,-M_PI,0 };//M_PI/2, M_PI, 3*M_PI/2, 2*M_PI };
 double referenceVal;
@@ -277,7 +277,7 @@ int main(void) {
 		for (size_t count = 0; count < nEntriesToSend; count++) {
 			cb_pop_front(&myBuff, &retrieved); //take entry from the buffer
 			printf("%lu, %f, %f, %f, %lu\n\r", retrieved.currentTimestamp,
-					retrieved.current_u, retrieved.current_x2, retrieved.current_x1,
+					retrieved.current_u, retrieved.current_pos, retrieved.current_ref,
 					retrieved.cycleCoreDuration); // send values via USART using format: value1, value2, value3, ... valuen \n \r
 		}
 		referenceVal = referenceVals[referenceIndex];
@@ -569,8 +569,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		// recording data in the buffer
 		record r;
 		r.current_u = u;
-		r.current_x1 = x1;
-		r.current_x2 = x2;
+		r.current_ref = referenceVal;
+		r.current_pos = x2;
 		r.cycleCoreDuration = controlComputationDuration;
 		r.cycleBeginDelay = tocControlStep - ticControlStep
 				- (k_controller * Ts * 1000);
