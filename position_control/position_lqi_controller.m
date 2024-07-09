@@ -24,6 +24,8 @@ Qx = [1 0 0; 0 300 0; 0 0 40];
 % Qu = 0.01;
 % Qx = [0.01 0 0; 0 12 0; 0 0 200];
 % [K,S,e] = lqrd(A_ext, B_ext, Qx, Qu, 0, Ts)
+Qu = 0.001;
+Qx = [0.01 0 0; 0 12 0; 0 0 300];
 [K,S,e] = lqr(A_ext, B_ext, Qx, Qu, 0)
 
 %% Speed loop
