@@ -17,6 +17,7 @@ Qx = [0.01 0 0; 0 280 0; 0 0 10];
 [K,S,e] = dlqr(A_tilde, B_tilde, Qx, Qu, 0)
 
 %% Stability margins
+s=tf('s');
 G_speed = minreal(tf(G_pos)*s);
 speed_loop = feedback(G_speed, K(1));
 P1 = speed_loop/s;
