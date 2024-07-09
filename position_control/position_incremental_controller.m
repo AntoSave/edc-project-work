@@ -12,6 +12,6 @@ C_tilde = [0 1];
 %% Controller tuning
 % Qu = 0.1;
 % Qx = [0.01 0 0; 0 7 0; 0 0 180];
-Qu = 0.001;
-Qx = [0.1 0 0; 0 300 0; 0 0 10];
+Qu = 0.01;
+Qx = [0.01 0 0; 0 280 0; 0 0 10];
 [K,S,e] = dlqr(A_tilde, B_tilde, Qx, Qu, 0)

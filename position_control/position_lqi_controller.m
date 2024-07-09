@@ -23,25 +23,30 @@ G_speed=minreal(tf(sys)*s)
 
 stepinfo(G_speed)
 
-%% Analysis
+%% Frequency analysis
+% Speed inner loop
 speed_loop=feedback(G_speed,K(1))
+bandwidth(speed_loop) %Bandwidth of the speed loop is 66 rad/s
+speed_loop_info=stepinfo(speed_loop) % Speed loop step info
+
+% Position loop without ff
 P=speed_loop/s;
 C=K(2)-K(3)/s;
-
 W=C*P/(1+C*P);
-W_ff=(C*P-K(2)*P)/(1+C*P);
-bode(W)
-hold on
-bode(W_ff)
-legend("W","W_{ff}")
-figure()
-bode(C*P)
-
-% Speed loop step
-speed_loop_info=stepinfo(speed_loop)
-
-% Position loop step
+bandwidth(W)
 closed_loop_info=stepinfo(W)
+
+% Position loop with ff
+W_ff=(C*P-K(2)*P)/(1+C*P);
+bandwidth(W_ff)
 closed_loop_ff_info=stepinfo(W_ff)
 
+% Plots
+figure
+hold on
+bode(W)
+bode(W_ff)
+legend("W","W_{ff}")
 
+figure
+bode(C*P)
