@@ -8,22 +8,11 @@ Ts=0.005;
 A_ext = [sys.A [0;0]; -sys.C 0];
 B_ext = [sys.B; 0];
 
-% Controllore originale
-% Qu = 0.01;
-% Qx = [0.1 0 0; 0 100 0; 0 0 0.01];
-% Controllore nuovo NON CANCELLARE
-Qu = 25;
-Qx = [1 0 0; 0 300 0; 0 0 40];
-% Controllore
-% Qu = 0.1;
-% Qx = [0.01 0 0; 0 7 0; 0 0 180];
-
-% Controllore DEFINITIVO (forse?)
-% Qu = 0.1;
-% Qx = [0.01 0 0; 0 10 0; 0 0 340];
-% Qu = 0.01;
-% Qx = [0.01 0 0; 0 12 0; 0 0 200];
-% [K,S,e] = lqrd(A_ext, B_ext, Qx, Qu, 0, Ts)
+%v1 tuning
+%Qu = 0.1;
+%Qx = [1 0 0; 0 50 0; 0 0 0.1];
+%[K,S,e] = lqr(A_ext, B_ext, Qx, Qu, 0)
+%v2 tuning
 Qu = 0.001;
 Qx = [0.01 0 0; 0 12 0; 0 0 300];
 [K,S,e] = lqr(A_ext, B_ext, Qx, Qu, 0)
