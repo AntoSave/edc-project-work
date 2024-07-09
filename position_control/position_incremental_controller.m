@@ -15,3 +15,14 @@ C_tilde = [0 1];
 Qu = 0.01;
 Qx = [0.01 0 0; 0 280 0; 0 0 10];
 [K,S,e] = dlqr(A_tilde, B_tilde, Qx, Qu, 0)
+
+%% Stability margins
+G_speed = minreal(tf(G_pos)*s);
+speed_loop = feedback(G_speed, K(1));
+P1 = speed_loop/s;
+P2 = feedback(P1,K(2));
+z = tf('z', Ts);
+C = d2c(K(3)/(1-z^-1));
+W = feedback(C*P2,1);
+bandwidth(W) % Closed loop bandwidth is 30rad/s
+margin(C*P2) % phase margin is 70deg
