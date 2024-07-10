@@ -2,6 +2,7 @@
 load("pololu_37D_pos_second_order", "G_pos");
 sys = G_pos;
 Ts=0.005;
+s=tf('s');
 
 %% System discretization and extension
 sys_dis = c2d(sys,Ts)
