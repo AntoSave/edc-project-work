@@ -34,4 +34,26 @@ xlim([0,10])
 ylabel('Torque [Nm]')
 title('Torque controller stair of steps response')
 legend('r','y')
+%% Admittance damped
+load('admittance_damped')
+figure
+hold on
+plot(data{1}.Values)
+plot(data{2}.Values)
+xlim([20,36])
+ylabel('Position [deg]')
+xlabel('Time [s]')
+title('Admittacne controller - damped')
+legend('r','y')
 
+%% Admittance springy
+load('admittance_springy')
+figure
+hold on
+plot(data{1}.Values)
+plot(data{2}.Values)
+xlim([33,45])
+ylabel('Position [deg]')
+xlabel('Time [s]')
+title('Admittacne controller - springy')
+legend('r','y')
